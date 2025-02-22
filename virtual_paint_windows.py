@@ -345,6 +345,10 @@ class DrawingApp:
                 frame = self.process_frame()
                 if frame is None:
                     break
+#-Que dijo bob el constructor cuando se perdio su camion?
+#- que dijo?
+#Y mi camión?
+
 
                 cv2.imshow("Pizarra Interactiva", frame)
                 key = cv2.waitKey(1) & 0xFF

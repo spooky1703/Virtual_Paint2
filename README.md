@@ -73,6 +73,31 @@ python main.py
 - `+` - Aumentar tamaño del pincel
 - `-` - Disminuir tamaño del pincel
 
+## Notas para Windows
+
+Se incluye una segunda version del codigo `virtual_paint_windows.py` pensada exclusivamente para ser ejecutada correctamente en ese OS
+
+### Requisitos adicionales
+- Visual C++ Redistributable (necesario para MediaPipe)
+- Python 3.7-3.9 (versiones recomendadas para mejor compatibilidad)
+
+### Solución de problemas comunes
+1. Si la cámara no se inicializa:
+   - Verificar que no esté siendo usada por otra aplicación
+   - Probar diferentes índices de cámara (0, 1, 2)
+   - Actualizar los drivers de la cámara
+
+2. Si la aplicación se ejecuta lenta:
+   - Reducir la resolución de la cámara
+   - Cerrar aplicaciones en segundo plano
+   - Asegurar que las tarjetas gráficas estén actualizadas
+
+3. Si hay problemas con MediaPipe:
+   - Instalar Microsoft Visual C++ Redistributable
+   - Usar una versión compatible de Python (3.7-3.9)
+
+
+
 ## Estructura y Funcionamiento del Código
 
 ### 1. Inicialización y Configuración

@@ -247,6 +247,17 @@ class DrawingApp:
             print(f"Error procesando frame: {str(e)}")
             return None
 
+#tira pa' que yo la pruebe
+#Se pone olorsa me gusta como huele
+#Instagram privado pa que nadie la vele
+#Se puso bonita porque sabe que hoy se bebe
+
+#A portarse mal, pa sentirse bien
+#no queria funar, pero le dio al pen
+#una barbie, pero no busca un ken
+#Siempre le llego dice: Ven
+
+
     def handle_tool_selection(self, x, y, frame):
         """Maneja la lógica de selección de herramientas"""
         if self.tool_select_time_init:

@@ -1,23 +1,22 @@
-# Virtual_Paint2
+# Virtual Paint
 
-Una aplicación de pizarra virtual interactiva basada en Python que utiliza visión por computadora y reconocimiento de gestos de mano para crear una experiencia de dibujo inmersiva. La aplicación permite a los usuarios dibujar, borrar y manipular formas utilizando gestos de mano capturados a través de su cámara web.
+Una pizarra virtual interactiva desarrollada en Python que utiliza visión por computadora y reconocimiento de gestos para permitir dibujar y manipular elementos a través de la webcam. Esta aplicación permite a los usuarios dibujar, borrar y crear formas usando gestos de la mano en tiempo real.
 
 ## Características
 
-- Reconocimiento de gestos de mano en tiempo real
+- Reconocimiento de gestos en tiempo real usando MediaPipe
 - Múltiples herramientas de dibujo:
   - Pincel de mano libre
   - Herramienta de línea
   - Herramienta de rectángulo
   - Herramienta de círculo
   - Borrador
-- Selección de colores (Negro, Azul, Rojo, Verde, Blanco)
-- Tamaño de pincel ajustable
+- Tamaños de pincel ajustables
+- Múltiples colores (Negro, Azul, Rojo, Verde)
 - Función de deshacer
 - Opción de limpiar lienzo
-- Importación y manipulación de imágenes
-- Modo pantalla completa
-- Interfaz interactiva de selección de herramientas
+- Selección de herramientas mediante posicionamiento de la mano
+- Interfaz visual con indicadores de herramientas
 
 ## Requisitos
 
@@ -25,22 +24,20 @@ Una aplicación de pizarra virtual interactiva basada en Python que utiliza visi
 - OpenCV (cv2)
 - MediaPipe
 - NumPy
-- macOS (para la funcionalidad de importación de imágenes)
+- Una webcam
 
 ## Instalación
 
-1. Clona el repositorio:
+1. Clona este repositorio:
 ```bash
 git clone https://github.com/tuusuario/pizarra-virtual.git
 cd pizarra-virtual
 ```
 
-2. Crea y activa un entorno virtual (recomendado):
+2. Crea un entorno virtual (recomendado):
 ```bash
 python -m venv venv
-source venv/bin/activate  # En Unix/macOS
-# O
-.\venv\Scripts\activate  # En Windows
+source venv/bin/activate  # En Windows usa: venv\Scripts\activate
 ```
 
 3. Instala los paquetes requeridos:
@@ -52,92 +49,176 @@ pip install mediapipe opencv-python numpy
 
 1. Ejecuta la aplicación:
 ```bash
-python virtual_paint_estable.py
+python main.py
 ```
 
-2. Controles:
-- **Gestos con la mano:**
-  - Apunta con el dedo índice para dibujar
-  - Levanta los dedos índice y medio para preparar el dibujo de formas
-  - Cierra la mano para agarrar y mover imágenes importadas
-  - Mantén el dedo en la parte superior de la pantalla para seleccionar herramientas
-- **Atajos de teclado:**
-  - `ESC` - Salir de la aplicación
-  - `u` - Deshacer última acción
-  - `c` - Limpiar lienzo
-  - `e` - Cambiar a borrador
-  - `r` - Cambiar a color rojo
-  - `g` - Cambiar a color verde
-  - `b` - Cambiar a color azul
-  - `+` - Aumentar tamaño del pincel
-  - `-` - Disminuir tamaño del pincel
-  - `o` - Importar imagen (solo macOS)
-  - `d` - Eliminar imagen seleccionada
+2. La aplicación mostrará las instrucciones iniciales y luego lanzará la interfaz de la pizarra virtual.
 
-## Selección de Herramientas
+### Controles
 
-La aplicación cuenta con una barra de selección de herramientas en la parte superior de la pantalla. Para seleccionar una herramienta:
-1. Mueve tu dedo índice a la parte superior de la pantalla
-2. Mantenlo sobre el icono de la herramienta deseada
-3. Espera a que el círculo de selección se complete
+#### Gestos con la Mano:
+- Mantén el dedo índice arriba para dibujar/usar herramientas
+- Mueve la mano a la parte superior de la pantalla para seleccionar herramientas
+- Mantén la posición durante 0.8 segundos para seleccionar una herramienta
+- Usa un dedo para dibujar y crear formas
 
-## Herramientas de Dibujo
+#### Controles de Teclado:
+- `ESC` - Salir de la aplicación
+- `u` - Deshacer última acción
+- `c` - Limpiar lienzo
+- `e` - Cambiar a borrador
+- `r` - Cambiar a color rojo
+- `g` - Cambiar a color verde
+- `b` - Cambiar a color azul
+- `+` - Aumentar tamaño del pincel
+- `-` - Disminuir tamaño del pincel
 
-### Herramienta de Pincel
-- Selecciona la herramienta de pincel desde la barra de herramientas
-- Apunta con tu dedo índice para dibujar libremente
-- Elige diferentes colores usando los atajos de teclado
+## Estructura y Funcionamiento del Código
 
-### Herramientas de Formas (Línea, Rectángulo, Círculo)
-1. Selecciona la herramienta de forma deseada
-2. Apunta donde quieras comenzar la forma
-3. Levanta los dedos índice y medio
-4. Mueve tu mano para ajustar el tamaño/posición de la forma
-5. Baja los dedos para completar la forma
+### 1. Inicialización y Configuración
 
-### Borrador
-- Selecciona la herramienta de borrador o presiona `e`
-- Usa los mismos gestos que la herramienta de pincel para borrar
+La aplicación se inicializa con MediaPipe para la detección de manos y configura los parámetros básicos:
 
-## Manipulación de Imágenes
+```python
+# Inicialización de MediaPipe
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(
+    min_detection_confidence=0.8,
+    min_tracking_confidence=0.8,
+    max_num_hands=1,
+    model_complexity=1
+)
 
-### Importar Imágenes
-- Presiona `o` para abrir el diálogo de selección de archivo (solo macOS)
-- Selecciona un archivo de imagen para importar
+# Configuraciones de dibujo
+BRUSH_SIZES = [4, 8, 12, 16]
+COLORS = [
+    (0, 0, 0),    # Negro
+    (255, 0, 0),  # Azul
+    (0, 0, 255),  # Rojo
+    (0, 255, 0),  # Verde
+    (255, 255, 255)  # Blanco (borrador)
+]
+```
 
-### Mover Imágenes
-1. Posiciona tu mano sobre la imagen importada
-2. Cierra tu mano (haz un puño) para agarrar la imagen
-3. Mueve tu mano para reposicionar la imagen
-4. Abre tu mano para soltar
+### 2. Clase Principal DrawingApp
 
-### Eliminar Imágenes
-1. Agarra la imagen que quieres eliminar
-2. Presiona `d` para eliminar la imagen seleccionada
+La aplicación se estructura alrededor de la clase `DrawingApp`. Aquí está su inicialización:
 
-## Solución de Problemas
+```python
+def __init__(self):
+    self.cap = cv2.VideoCapture(0)
+    ret, frame = self.cap.read()
+    self.h, self.w = frame.shape[:2]
+    
+    # Inicialización del lienzo
+    self.mask = np.ones((self.h, self.w, 3), dtype='uint8') * 255
+    self.history = deque(maxlen=MAX_HISTORY)
+    self.current_tool = "Brush"
+    self.brush_size = 8
+    self.color = COLORS[0]
+```
 
-Problemas comunes y soluciones:
+### 3. Detección de Gestos
 
-1. **Cámara no detectada:**
-   - Asegúrate de que tu cámara web esté correctamente conectada
-   - Verifica si otras aplicaciones están usando la cámara
-   - Verifica los permisos de cámara para la aplicación
+El sistema detecta gestos básicos analizando la posición de los dedos:
 
-2. **Problemas de detección de mano:**
-   - Asegura buenas condiciones de iluminación
-   - Mantén tu mano dentro del marco de la cámara
-   - Mantén un fondo claro para una mejor detección
+```python
+def detect_gesture(self, landmarks):
+    fingers = []
+    # Dedo índice levantado
+    if landmarks[8].y < landmarks[6].y:
+        fingers.append(1)
+    # Dedo medio levantado
+    if landmarks[12].y < landmarks[10].y:
+        fingers.append(1)
+    return fingers
+```
 
-3. **Problemas de rendimiento:**
-   - Cierra otras aplicaciones que consuman muchos recursos
-   - Asegúrate de que tu computadora cumple con los requisitos mínimos
-   - Considera reducir la resolución de la cámara si es necesario
+### 4. Procesamiento de Frames
+
+El método principal que procesa cada frame de la cámara:
+
+```python
+def process_frame(self):
+    success, frame = self.cap.read()
+    frame = cv2.flip(frame, 1)  # Efecto espejo
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(rgb)
+
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            # Obtiene posición del dedo índice
+            index_tip = hand_landmarks.landmark[8]
+            x = int(index_tip.x * frame.shape[1])
+            y = int(index_tip.y * frame.shape[0])
+            
+            # Procesa gestos y dibuja según la herramienta actual
+            # [Código de dibujo y procesamiento...]
+```
+
+### 5. Herramientas de Dibujo
+
+El sistema implementa diferentes herramientas de dibujo. Por ejemplo, el dibujo de líneas:
+
+```python
+def draw_line(self, start, end):
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    distance = max(abs(dx), abs(dy))
+    for i in range(distance):
+        x = int(start[0] + float(i) / distance * dx)
+        y = int(start[1] + float(i) / distance * dy)
+        cv2.circle(self.mask, (x, y), self.brush_size, self.color, -1)
+```
+
+### 6. Interfaz de Usuario
+
+La interfaz se crea y gestiona mediante:
+
+```python
+def load_tools_interface(self, width):
+    tools = np.zeros((100, width, 3), dtype=np.uint8)
+    icon_width = width // 5
+    icons = [
+        ("Brush", (0, 0, 255)),
+        ("Line", (255, 0, 0)),
+        ("Rect", (0, 255, 0)),
+        ("Circle", (255, 255, 0)),
+        ("Erase", (255, 255, 255))
+    ]
+    for i, (text, color) in enumerate(icons):
+        start_x = i * icon_width
+        end_x = start_x + icon_width - 10
+        cv2.rectangle(tools, (start_x, 0), (end_x, 90), color, -1)
+        cv2.putText(tools, text, (start_x + 10, 45),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+    return tools
+```
+
+## Problemas Conocidos y Limitaciones
+
+- Solo soporta detección de una mano
+- Requiere buenas condiciones de iluminación
+- Puede experimentar cierto retraso en sistemas más lentos
+- La resolución de la webcam afecta la precisión del dibujo
 
 ## Contribuir
 
-¡Las contribuciones son bienvenidas! No dudes en enviar un Pull Request.
+¡Las contribuciones son bienvenidas! Por favor, siéntete libre de enviar un Pull Request.
 
 ## Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
+
+## Agradecimientos
+
+- MediaPipe por la detección y seguimiento de manos
+- OpenCV por el procesamiento de imágenes
+- NumPy por las operaciones con arrays
+
+## Notas Adicionales
+
+Para un funcionamiento óptimo:
+- Asegúrate de tener buena iluminación
+- Mantén la mano visible y estable
+- Calibra la sensibilidad si es necesario ajustando los valores de `min_detection_confidence`
